@@ -1,7 +1,7 @@
 # detection.py
 # ------------
-# Contains functions which implement the various community detection algorithms.
-# All functions take the following form:
+# Exports functions which implement the various community detection algorithms.
+# All exported functions take the following form:
 # Input: snappy graph
 # Output: map from node ids to ints representing community membership
 
