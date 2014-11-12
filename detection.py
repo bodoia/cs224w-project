@@ -3,7 +3,7 @@
 # Contains functions which implement the various community detection algorithms.
 # All functions take the following form:
 # Input: snappy graph
-# Output: map from user_kookies to ints representing community membership
+# Output: map from node ids to ints representing community membership
 
 import sys
 sys.path.append('../snappy/')
