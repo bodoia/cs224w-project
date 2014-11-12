@@ -12,7 +12,8 @@ import snap
 
 # Implements the fraction correctly classified metric described in [3]
 def evaluateFCC(detected, groundTruth):
-   # TODO
+   for node in detected.iterkeys():
+      
    return 0
 
 # Implements the Rand index metric described in [3]
