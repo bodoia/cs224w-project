@@ -1,6 +1,6 @@
 cs224w-project
 ==============
-We can use the readme to coordinate who's working on what. I figured a good plan of action is to do all of the milestone stuff in python as a first pass, then if we want to we can rewrite it in something faster like C++ (or Fortran :D) for the final project. Right now the organizational structure is as follows:
+Okay, so we're going to just do everything in Python and forget about speed. We're also going to use NetworkX instead of Snap.py since it supports weighted edges. Right now the organizational structure is as follows:
 
 main.py : the main method for the program
 
