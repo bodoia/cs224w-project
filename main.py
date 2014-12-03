@@ -1,6 +1,4 @@
-import sys
-sys.path.append('../snappy/')
-import snap
+import networkx as nx
 from initialization import *
 from detection import *
 from evaluation import *
