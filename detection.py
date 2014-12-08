@@ -10,6 +10,8 @@ import scipy as sp
 import numpy as np
 import random as random
 from networkx.algorithms import bipartite
+from sp import cluster, sparse
+from sp import linalg
 
 num_clust = 10
 
@@ -86,8 +88,17 @@ def detectModularity(G):
 
 # Implements the basic spectral algorithm described in [5]
 def detectSpectral(G):
-   # TODO Arjun
-   return G
+   A = nx.to_scipy_sparse_matrx(G, nodelist=range(len(G.nodes())),dtype=float)
+   d = A.sum(axis=0)
+   Dinvsqrt = sp.sparse.diags(np.squeeze(np.array(1./np.sqrt(d))), 0)
+   L = Dinvsqrt*A*Dinvsqrt
+   l = np.ceil(np.log(num_clust)/np.log(2)) #l = num_clust?
+   vals, X = sp.sparse.linalg.eigsh(L, k=l+1)
+   #X = X with normalized rows? whiten?
+   X = X[:, 2:l+1]
+   _, clusts = sp.cluster.vq.kmeans2(X, num_clust)
+   detected = {i: clusts[i] for i in range(len(clusts))}
+   return detected
 
 def _getBipartition(G):
    topSet, botSet = bipartite.sets(G)
