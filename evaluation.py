@@ -11,6 +11,7 @@ sys.path.append('../snappy/')
 import snap
 import numpy
 import math
+import networkx as nx
 
 def _invertDict(d):
    inv = {}
@@ -27,7 +28,31 @@ def _entropy(P):
          ent -= x*math.log(x)/math.log(2)
    return ent
 
-# Implements the fraction correctly classified metric described in [3]
+# Implements best cluster-matching error of [3]
+def evaluateBCME(detected, groundTruth):
+   detClust = _invertDict(detected)
+   trueClust = _invertDict(groundTruth)
+   
+   detKeys = detClust.keys()
+   trueKeys = trueClust.keys()
+   
+   l = len(detClust)
+   
+   clusts = nx.Graph()
+   for i in range(l + len(trueClust)):
+      clusts.add_node(i)
+   
+   for i in range(l):
+      for j in range(len(trueClust)):
+         clusts.add_edge(i, l+j, weight=len(detClust[detKeys[i]] & detClust[detKeys[j]]))
+   
+   mate = nx.max_weight_matching(clusts)
+   matched = 0
+   for v in mate:
+      matched = matched + clusts[v][mate[v]]['weight']
+   return float(matched)/(2*len(detected))
+
+# Implements (somewhat improperly) the fraction correctly classified metric described in [3]
 def evaluateFCC(detected, groundTruth):
    cc = 0 #correctly classified
    
