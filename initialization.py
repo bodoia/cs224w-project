@@ -1,14 +1,12 @@
 # initialization.py
 # ------------
-# Exports functions for converting the raw data into snappy graphs. All
+# Exports functions for converting the raw data into NetworkX graphs. All
 # conversion from global_hash and user_kookie strings to integer node ids is
 # handled internally here. Exported functions take the following form:
 # Input: text file containing data from Bitly
-# Output: tuple containing (snappy graph, map from node ids to ints representing ground truth communities)
+# Output: NetworkX graph
 
-import sys
-sys.path.append('../snappy/')
-import snap
+import networkx as nx
 
 # Returns a map from user kookies to ints representing ground truth communities
 def __getOriginalGroundTruth(fileName):

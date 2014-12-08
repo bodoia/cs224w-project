@@ -7,6 +7,9 @@
 
 import networkx as nx
 import scipy as sp
+import numpy as np
+import random as random
+from networkx.algorithms import bipartite
 
 # Implements the hierarchical clustering algorithm described in [4]
 def detectHierarchical(G):
@@ -26,34 +29,124 @@ def _getGeneralizedModularityMatrix(G, S):
    A = nx.adjacency_matrix(G)
 
    # Compute modularity matrix B
-   B = A.copy()
-   for i in range(len(V)):
-      for j in range(len(V)):
-         B[i][j] -= G.degree(V[i]) * G.degree(V[j]) / (2*G.size())
+   degrees = np.matrix([G.degree(i) for i in V])
+   D = np.transpose(degrees).dot(degrees)
+   B = A - (D / float(2*G.size()))
 
    # Compute generalized modularity matrix Bg
-   Bg = B.copy()
+   Bg = B
    for i in range(len(V)):
-      for k in range(len(V)):
-         if S[k] == 1:
-            Bg[i][i] -= B[i][k]
+      Bg[i,i] = 0
+      for k in S:
+         if k != i:
+            Bg[i,i] -= B[i,k]
 
-   return Bg
+   return Bg[[[x] for x in S],S]
+
+# Helper function which computes the modularity-maximizing division for a generalized modularity matrix Bg
+def _getDivisionFromGeneralizedModularityMatrix(Bg):
+   (eigenVals, eigenVecs) = np.linalg.eig(Bg)
+   maxIndex = sp.argmax(eigenVals)
+   maxVec = eigenVecs[:,maxIndex]
+   s = [1 if x > 0 else -1 for x in maxVec]
+   s = np.array(s)
+   return s
 
 # Implements the basic modularity-based algorithm described in [6]
 def detectModularity(G):
-   clusters = {}
+   clusters = {1 : range(G.order())}
+   while True:
+      bestDeltaQ, bestCluster, bestS = 0, None, None
+      for clusterKey in clusters:
+         Bg = _getGeneralizedModularityMatrix(G, clusters[clusterKey])
+         s = _getDivisionFromGeneralizedModularityMatrix(Bg)
+         deltaQ = s.dot(Bg).dot(s) / float(4 * G.size())
+         deltaQ = deltaQ[0,0]
 
-   return G
+         if deltaQ > bestDeltaQ:
+            bestDeltaQ = deltaQ
+            bestCluster = clusterKey
+            bestS = s 
+
+      if bestDeltaQ > 0:
+         posSplit, negSplit = [], []
+         for i in range(len(clusters[bestCluster])):
+            if bestS[i] == 1:
+               posSplit.append(clusters[bestCluster][i]) 
+            else:
+               negSplit.append(clusters[bestCluster][i]) 
+         clusters[bestCluster] = posSplit
+         clusters[len(clusters) + 1] = negSplit
+      else:
+         break
+
+   return clusters
 
 # Implements the basic spectral algorithm described in [5]
 def detectSpectral(G):
    # TODO Arjun
    return G
 
+def _getBipartition(G):
+   topSet, botSet = bipartite.sets(G)
+   topSet, botSet = list(topSet), list(botSet)
+   topIndices, botIndices = [], []
+   V = G.nodes()
+   for i in range(G.order()):
+      if V[i] in topSet:
+         topIndices.append(i)
+      else:
+         botIndices.append(i) 
+   return topIndices, botIndices
+
+def _getNumClusters(G):
+   return 4 
+
+def _getRandomClusters(m, c):
+   row = np.zeros((m, c))
+   for i in range(m):
+      row[i, random.randint(0,c-1)] = 1.
+   return row
+
+def _getNewRT(RTBar):
+   maxes = np.argmax(RTBar, axis=1)
+   newRT = np.zeros(RTBar.shape)
+   for i in range(newRT.shape[0]):
+      newRT[i, maxes[i,0]] = 1.
+   return newRT
+
+def _getBipartiteModularityMatrix(G, V1, V2):
+   V = G.nodes()
+
+   # Compute adjacency matrix A
+   A = nx.adjacency_matrix(G)
+
+   # Compute modularity matrix B
+   degrees = np.matrix([G.degree(i) for i in V])
+   D = np.transpose(degrees).dot(degrees)
+   B = A - (D / float(G.size()))
+   return B[[[x] for x in V1], V2]
+
 # Implements the BRIM algorithm described in [1]
 def detectBRIM(G):
-   # TODO Bodoia
+   V1, V2 = _getBipartition(G) # List of the p and q node indices in two sides of graph
+   c = _getNumClusters(G)
+   Bbar = _getBipartiteModularityMatrix(G, V1, V2)
+   maxQ = 0
+   while True:
+      R = _getRandomClusters(len(V1), c)
+      T = _getRandomClusters(len(V2), c)
+      Q = np.trace(sp.transpose(R).dot(Bbar).dot(T)) / float(G.size())
+      while True:
+         newR = _getNewRT(Bbar.dot(T))
+         newT = _getNewRT(np.transpose(Bbar).dot(newR))
+         newQ = np.trace(np.transpose(newR).dot(Bbar).dot(newT)) / float(G.size())
+         if newQ <= Q:
+            break
+         R, T, Q = newR, newT, newQ
+      if Q > maxQ:
+         maxQ = Q
+         print Q
    return G
 
 # Implements the spectral co-clustering algorithm described in [2]

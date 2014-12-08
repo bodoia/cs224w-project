@@ -4,7 +4,8 @@ from detection import *
 from evaluation import *
 
 def main():
-   # TODO
-   print evaluateFCC(detectBRIM(initializeFull('file')))
+   #G = nx.read_graphml('Davis.GraphML')
+   G = nx.read_edgelist('Scotland.net')
+   detectBRIM(G)
 
 main()
