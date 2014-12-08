@@ -11,6 +11,8 @@ import numpy as np
 import random as random
 from networkx.algorithms import bipartite
 
+num_clust = 10
+
 # Implements the hierarchical clustering algorithm described in [4]
 def detectHierarchical(G):
    # TODO Laura
@@ -55,7 +57,7 @@ def _getDivisionFromGeneralizedModularityMatrix(Bg):
 # Implements the basic modularity-based algorithm described in [6]
 def detectModularity(G):
    clusters = {1 : range(G.order())}
-   while True:
+   while len(clusters) < num_clust:
       bestDeltaQ, bestCluster, bestS = 0, None, None
       for clusterKey in clusters:
          Bg = _getGeneralizedModularityMatrix(G, clusters[clusterKey])
@@ -130,12 +132,11 @@ def _getBipartiteModularityMatrix(G, V1, V2):
 # Implements the BRIM algorithm described in [1]
 def detectBRIM(G):
    V1, V2 = _getBipartition(G) # List of the p and q node indices in two sides of graph
-   c = _getNumClusters(G)
    Bbar = _getBipartiteModularityMatrix(G, V1, V2)
    maxQ = 0
    while True:
-      R = _getRandomClusters(len(V1), c)
-      T = _getRandomClusters(len(V2), c)
+      R = _getRandomClusters(len(V1), num_clust)
+      T = _getRandomClusters(len(V2), num_clust)
       Q = np.trace(sp.transpose(R).dot(Bbar).dot(T)) / float(G.size())
       while True:
          newR = _getNewRT(Bbar.dot(T))
