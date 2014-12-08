@@ -11,6 +11,8 @@ import numpy as np
 import random as random
 from networkx.algorithms import bipartite
 
+num_clust = 10
+
 # Implements the hierarchical clustering algorithm described in [4]
 def detectHierarchical(G):
    # TODO Laura
