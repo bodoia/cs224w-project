@@ -10,9 +10,9 @@ def main():
    print "Loaded graph with {0} nodes and {1} edges".format(G.order(), G.size())
    #detectModularity(G)
    clusters = detectBRIM(G)
-   print clusters
-   print "BCME:", evaluateBCME(clusters, groundTruth)
+   print "BCMA:", evaluateBCMA(clusters, groundTruth)
    print "RI:", evaluateRI(clusters, groundTruth)
    print "NMI:", evaluateNMI(clusters, groundTruth)
+   print "JI:", evaluateJI(clusters, groundTruth)
 
 main()

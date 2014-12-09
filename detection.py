@@ -14,7 +14,7 @@ from networkx.algorithms import bipartite
 from scipy import cluster, sparse
 from scipy import linalg
 
-num_clust = 10
+num_clust = 5
 
 # Implements the hierarchical clustering algorithm described in [4]
 def detectHierarchical(G):
@@ -127,7 +127,7 @@ def _getRandomClusters(m, c):
    row = np.zeros((m, c))
    for i in range(m):
       row[i, random.randint(0,c-1)] = 1.
-   print "Computed random clusters."
+   #print "Computed random clusters."
    return row
 
 def _getNewRT(RTBar):
@@ -156,26 +156,27 @@ def _getBipartiteModularityMatrix(G, V1, V2):
 # Implements the BRIM algorithm described in [1]
 def detectBRIM(G):
    V1, V2 = _getBipartition(G) # List of the p and q node indices in two sides of graph
-   Bbar = _getBipartiteModularityMatrix(G, V1, V2)
-   BbarT = np.transpose(Bbar)
-   maxR, maxT, maxQ = None, None, 0
-   count = 0
-   while count < 1:
-      count += 1
-      print count
-      R = _getRandomClusters(len(V1), num_clust)
-      T = _getRandomClusters(len(V2), num_clust)
-      Q = np.trace(sp.transpose(R).dot(Bbar).dot(T)) / float(G.size())
-      while True:
-         newR = _getNewRT(Bbar.dot(T))
-         newT = _getNewRT(BbarT.dot(newR))
-         newQ = np.trace(np.transpose(newR).dot(Bbar).dot(newT)) / float(G.size())
-         if newQ <= Q:
-            break
-         R, T, Q = newR, newT, newQ
-      if Q > maxQ:
-         maxR, maxT, maxQ = R, T, Q
-         print "Found new max {0} on iteration {1}".format(Q, count)
+   #Bbar = _getBipartiteModularityMatrix(G, V1, V2)
+   #BbarT = np.transpose(Bbar)
+   #maxR, maxT, maxQ = None, None, 0
+   #count = 0
+   #while count < 100:
+   #   count += 1
+   #   print count
+   #   R = _getRandomClusters(len(V1), num_clust)
+   #   T = _getRandomClusters(len(V2), num_clust)
+   #   Q = np.trace(sp.transpose(R).dot(Bbar).dot(T)) / float(G.size())
+   #   while True:
+   #      newR = _getNewRT(Bbar.dot(T))
+   #      newT = _getNewRT(BbarT.dot(newR))
+   #      newQ = np.trace(np.transpose(newR).dot(Bbar).dot(newT)) / float(G.size())
+   #      if newQ <= Q:
+   #         break
+   #      R, T, Q = newR, newT, newQ
+   #   if Q > maxQ:
+   #      maxR, maxT, maxQ = R, T, Q
+   #      print "Found new max {0} on iteration {1}".format(Q, count)
+   maxR = _getRandomClusters(len(V1), num_clust)
    clusters = {}
    clusterIds = np.argmax(maxR, axis=1).flatten()
    for i in range(len(V1)):
