@@ -123,7 +123,7 @@ def _getBipartition(G):
          topIndices.append(i)
       else:
          botIndices.append(i) 
-   print "Computed bipartition."
+   #print "Computed bipartition."
    return topIndices, botIndices
 
 def _getRandomClusters(m, c):
@@ -145,41 +145,41 @@ def _getBipartiteModularityMatrix(G, V1, V2):
 
    # Compute adjacency matrix A
    A = nx.adjacency_matrix(G)
-   print "Computed A."
+   #print "Computed A."
 
    # Compute modularity matrix B
    degrees = np.matrix([G.degree(i) for i in V])
-   print "Computed degrees."
+   #print "Computed degrees."
    D = np.transpose(degrees).dot(degrees)
-   print "Computed D."
+   #print "Computed D."
    B = A - (D / float(G.size()))
-   print "Computed B."
+   #print "Computed B."
    return B[[[x] for x in V1], V2]
 
 # Implements the BRIM algorithm described in [1]
 def detectBRIM(G):
    V1, V2 = _getBipartition(G) # List of the p and q node indices in two sides of graph
-   #Bbar = _getBipartiteModularityMatrix(G, V1, V2)
-   #BbarT = np.transpose(Bbar)
-   #maxR, maxT, maxQ = None, None, 0
-   #count = 0
-   #while count < 100:
-   #   count += 1
-   #   print count
-   #   R = _getRandomClusters(len(V1), num_clust)
-   #   T = _getRandomClusters(len(V2), num_clust)
-   #   Q = np.trace(sp.transpose(R).dot(Bbar).dot(T)) / float(G.size())
-   #   while True:
-   #      newR = _getNewRT(Bbar.dot(T))
-   #      newT = _getNewRT(BbarT.dot(newR))
-   #      newQ = np.trace(np.transpose(newR).dot(Bbar).dot(newT)) / float(G.size())
-   #      if newQ <= Q:
-   #         break
-   #      R, T, Q = newR, newT, newQ
-   #   if Q > maxQ:
-   #      maxR, maxT, maxQ = R, T, Q
-   #      print "Found new max {0} on iteration {1}".format(Q, count)
-   maxR = _getRandomClusters(len(V1), num_clust)
+   Bbar = _getBipartiteModularityMatrix(G, V1, V2)
+   BbarT = np.transpose(Bbar)
+   maxR, maxT, maxQ = None, None, 0
+   count = 0
+   while count < 100:
+      count += 1
+      print count,
+      R = _getRandomClusters(len(V1), num_clust)
+      T = _getRandomClusters(len(V2), num_clust)
+      Q = np.trace(sp.transpose(R).dot(Bbar).dot(T)) / float(G.size())
+      while True:
+         newR = _getNewRT(Bbar.dot(T))
+         newT = _getNewRT(BbarT.dot(newR))
+         newQ = np.trace(np.transpose(newR).dot(Bbar).dot(newT)) / float(G.size())
+         if newQ <= Q:
+            break
+         R, T, Q = newR, newT, newQ
+      if Q > maxQ:
+         maxR, maxT, maxQ = R, T, Q
+         print "Found new max {0} on iteration {1}".format(Q, count)
+   #maxR = _getRandomClusters(len(V1), num_clust)
    clusters = {}
    clusterIds = np.argmax(maxR, axis=1).flatten()
    for i in range(len(V1)):
