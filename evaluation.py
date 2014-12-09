@@ -28,8 +28,8 @@ def _entropy(P):
          ent -= x*math.log(x)/math.log(2)
    return ent
 
-# Implements best cluster-matching error of [3]
-def evaluateBCME(detected, groundTruth):
+# Implements best cluster-matching accuracy of [3]
+def evaluateBCMA(detected, groundTruth):
    detClust = _invertDict(detected)
    trueClust = _invertDict(groundTruth)
    
@@ -44,7 +44,7 @@ def evaluateBCME(detected, groundTruth):
    
    for i in range(l):
       for j in range(len(trueClust)):
-         clusts.add_edge(i, l+j, weight=len(detClust[detKeys[i]] & detClust[detKeys[j]]))
+         clusts.add_edge(i, l+j, weight=len(detClust[detKeys[i]] & trueClust[trueKeys[j]]))
    
    mate = nx.max_weight_matching(clusts)
    matched = 0
