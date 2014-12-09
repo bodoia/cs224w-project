@@ -72,8 +72,8 @@ def evaluateFCC(detected, groundTruth):
    
    return float(cc)/len(detected)
 
-# Implements the Rand index metric described in [3]
-def evaluateRI(detected, groundTruth):
+# The True/False Pos/Neg square for Rand/Jaccard Index
+def _getErrorSquare(detected, groundTruth):
    trueClust = _invertDict(groundTruth)
    detectedClust = _invertDict(detected)
    
@@ -96,7 +96,18 @@ def evaluateRI(detected, groundTruth):
    
    numNodes = len(detected)
    a00 = numNodes*(numNodes - 1) - a11 - a10 - a01
-   return float(a11 + a00)/(a11 + a01 + a10 + a00)
+   return [[a00, a01],[a10,a11]]
+
+
+# Implements the Rand index metric described in [3]
+def evaluateRI(detected, groundTruth):
+   a = _getErrorSquare(detected, groundTruth)
+   return float(a[1][1] + a[0][0])/(a[1][1] + a[1][0] + a[0][1] + a[0][0])
+
+# Implements the Jaccard index metric of [3]
+def evaluateJI(detected, groundTruth):
+   a = _getErrorSquare(detected, groundTruth)
+   return float(a[1][1])/(a[1][1] + a[1][0] + a[0][1])
 
 # Implements the normalized mutual information metric described in [3]
 def evaluateNMI(detected, groundTruth):

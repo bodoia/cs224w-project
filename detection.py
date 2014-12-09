@@ -101,10 +101,13 @@ def detectSpectral(G, numSites, num_clusters=num_clust):
    Dinvsqrt = sp.sparse.diags(np.squeeze(np.array(1./np.sqrt(d))), 0)
    L = Dinvsqrt*A*Dinvsqrt
    l = np.ceil(np.log(num_clusters)/np.log(2)) #l = num_clust?
-   vals, X = sp.sparse.linalg.eigsh(L, k=num_clusters+1, which='LA')
+   
+   vals, X = sp.sparse.linalg.eigsh(L, k=l+1, which='LA')
    ourEigs = [pair[0] for pair in sorted(enumerate(vals), key = lambda x:x[1], reverse=True)]
    #X = X with normalized rows? whiten?
    X = X[:,ourEigs[1:]] #eigenvalues 2 to l
+   #X = sp.cluster.vq.whiten(X)
+   
    codebook,_ = sp.cluster.vq.kmeans(X, num_clusters)
    clusts,_ = sp.cluster.vq.vq(X, codebook)
    detected = {i: clusts[i] for i in range(numSites)}
