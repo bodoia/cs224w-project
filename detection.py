@@ -13,6 +13,7 @@ import random as random
 from networkx.algorithms import bipartite
 from scipy import cluster, sparse
 from scipy import linalg
+from scipy.sparse import linalg as spla
 
 num_clust = 5
 
@@ -50,11 +51,15 @@ def _getGeneralizedModularityMatrix(G, S):
 
 # Helper function which computes the modularity-maximizing division for a generalized modularity matrix Bg
 def _getDivisionFromGeneralizedModularityMatrix(Bg):
-   (eigenVals, eigenVecs) = np.linalg.eigh(Bg)
-   print "Computed eigenvals."
-   maxIndex = sp.argmax(eigenVals)
-   print "Computed maxIndex."
-   maxVec = eigenVecs[:,maxIndex]
+   print "Brace yourself..."
+   #(eigenVals, eigenVecs) = sp.linalg.eigh(Bg, eigvals=(Bg.shape[0]-1, Bg.shape[0]-1))
+   #(eigenVals, eigenVecs) = spla.eigsh(Bg, k=1, which='LA', maxiter=100000)
+   try:
+      (eigenVals, eigenVecs) = spla.eigsh(Bg, k=1, which='LA')#, maxiter=100000)
+   except:
+      return np.ones(Bg.shape[0], dtype=np.int)
+   print "Computed largest eigenvec."
+   maxVec = eigenVecs.flatten()
    print "Computed maxVec."
    s = [1 if x > 0 else -1 for x in maxVec]
    s = np.array(s)
@@ -67,7 +72,7 @@ def detectModularity(G):
    clusters = {1 : range(G.order())}
    while len(clusters) < num_clust:
       print "Computed {0} clusters so far.".format(len(clusters))
-      bestDeltaQ, bestCluster, bestS = 0, None, None
+      bestDeltaQ, bestCluster, bestS = float("-inf"), None, None
       for clusterKey in clusters:
          Bg = _getGeneralizedModularityMatrix(G, clusters[clusterKey])
          s = _getDivisionFromGeneralizedModularityMatrix(Bg)
@@ -91,7 +96,12 @@ def detectModularity(G):
       else:
          break
 
-   return clusters
+   invClusters = {}
+   for cluster, nodes in clusters.iteritems():
+      for node in nodes:
+         if node < 6740:
+            invClusters[node] = cluster 
+   return invClusters
 
 def _invsqrt(degV):
    return sp.sparse.diags(np.squeeze(np.array(1./np.sqrt(degV))), 0)
@@ -170,7 +180,7 @@ def detectBRIM(G):
    count = 0
    while count < 100:
       count += 1
-      print count,
+      print count
       R = _getRandomClusters(len(V1), num_clust)
       T = _getRandomClusters(len(V2), num_clust)
       Q = np.trace(sp.transpose(R).dot(Bbar).dot(T)) / float(G.size())
